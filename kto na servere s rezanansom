@@ -1,0 +1,225 @@
+--https://github.com/marshelx/ResonancePublic/blob/main/admin-panel.lua original logika
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+--// Remove previous version
+pcall(function()
+    if getgenv().ResonanceUsersUnload then
+        getgenv().ResonanceUsersUnload()
+    end
+end)
+
+--// Remote
+local GrabEvents = ReplicatedStorage:FindFirstChild("GrabEvents")
+local ExtendGrabLine = GrabEvents and GrabEvents:FindFirstChild("ExtendGrabLine")
+
+if not ExtendGrabLine then
+    return
+end
+
+--// Data
+local resonanceUsers = {}
+local connections = {}
+
+--// GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ResonanceUsersGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.DisplayOrder = 999999
+ScreenGui.Parent = CoreGui
+
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.fromOffset(220, 115)
+Main.Position = UDim2.new(0.5, -110, 0, 20)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 7)
+Corner.Parent = Main
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(55, 55, 55)
+Stroke.Thickness = 1
+Stroke.Parent = Main
+
+--// Header
+local Header = Instance.new("TextLabel")
+Header.Size = UDim2.new(1, -12, 0, 26)
+Header.Position = UDim2.fromOffset(6, 4)
+Header.BackgroundTransparency = 1
+Header.Text = "Resonance Users: 0"
+Header.TextColor3 = Color3.fromRGB(255, 255, 255)
+Header.TextSize = 14
+Header.Font = Enum.Font.GothamBold
+Header.TextXAlignment = Enum.TextXAlignment.Left
+Header.Parent = Main
+
+--// Divider
+local Divider = Instance.new("Frame")
+Divider.Size = UDim2.new(1, -12, 0, 1)
+Divider.Position = UDim2.fromOffset(6, 31)
+Divider.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+Divider.BorderSizePixel = 0
+Divider.Parent = Main
+
+--// User list
+local List = Instance.new("ScrollingFrame")
+List.Size = UDim2.new(1, -12, 1, -39)
+List.Position = UDim2.fromOffset(6, 36)
+List.BackgroundTransparency = 1
+List.BorderSizePixel = 0
+List.ScrollBarThickness = 2
+List.CanvasSize = UDim2.new()
+List.AutomaticCanvasSize = Enum.AutomaticSize.Y
+List.Parent = Main
+
+local Layout = Instance.new("UIListLayout")
+Layout.Padding = UDim.new(0, 2)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.Parent = List
+
+local Padding = Instance.new("UIPadding")
+Padding.PaddingBottom = UDim.new(0, 4)
+Padding.Parent = List
+
+--// Update list
+local function updateGUI()
+    local users = {}
+
+    for player in pairs(resonanceUsers) do
+        if player and player.Parent == Players then
+            users[#users + 1] = player
+        end
+    end
+
+    table.sort(users, function(a, b)
+        return a.Name:lower() < b.Name:lower()
+    end)
+
+    Header.Text = ("Resonance Users: %d"):format(#users)
+
+    for _, child in ipairs(List:GetChildren()) do
+        if child:IsA("TextLabel") then
+            child:Destroy()
+        end
+    end
+
+    for i, player in ipairs(users) do
+        local UserLabel = Instance.new("TextLabel")
+        UserLabel.Size = UDim2.new(1, -4, 0, 20)
+        UserLabel.BackgroundTransparency = 1
+        UserLabel.Text = player.DisplayName == player.Name
+            and player.Name
+            or (player.DisplayName .. " (@" .. player.Name .. ")")
+        UserLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
+        UserLabel.TextSize = 12
+        UserLabel.Font = Enum.Font.Gotham
+        UserLabel.TextXAlignment = Enum.TextXAlignment.Left
+        UserLabel.LayoutOrder = i
+        UserLabel.Parent = List
+    end
+
+    --// Auto-size window
+    local height = math.clamp(40 + (#users * 22), 70, 300)
+    Main.Size = UDim2.fromOffset(220, height)
+end
+
+--// Presence events
+connections[#connections + 1] = ExtendGrabLine.OnClientEvent:Connect(function(player, message)
+    if typeof(message) ~= "string" then
+        return
+    end
+
+    if message:sub(1, 11) ~= "r.presence " then
+        return
+    end
+
+    local state = string.split(message, " ")[2]
+
+    if state == "online" then
+        if player and player:IsA("Player") then
+            resonanceUsers[player] = true
+        end
+    elseif state == "offline" then
+        resonanceUsers[player] = nil
+    end
+
+    updateGUI()
+end)
+
+--// Remove players who leave
+connections[#connections + 1] = Players.PlayerRemoving:Connect(function(player)
+    resonanceUsers[player] = nil
+    updateGUI()
+end)
+
+--// Dragging
+local dragging = false
+local dragStart
+local startPosition
+
+Main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPosition = Main.Position
+    end
+end)
+
+Main.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+connections[#connections + 1] = UserInputService.InputChanged:Connect(function(input)
+    if not dragging then
+        return
+    end
+
+    if input.UserInputType ~= Enum.UserInputType.MouseMovement then
+        return
+    end
+
+    local delta = input.Position - dragStart
+
+    Main.Position = UDim2.new(
+        startPosition.X.Scale,
+        startPosition.X.Offset + delta.X,
+        startPosition.Y.Scale,
+        startPosition.Y.Offset + delta.Y
+    )
+end)
+
+--// Unload
+local function unload()
+    for _, connection in ipairs(connections) do
+        pcall(function()
+            connection:Disconnect()
+        end)
+    end
+
+    table.clear(connections)
+    table.clear(resonanceUsers)
+
+    if ScreenGui then
+        ScreenGui:Destroy()
+    end
+
+    if getgenv().ResonanceUsersUnload == unload then
+        getgenv().ResonanceUsersUnload = nil
+    end
+end
+
+getgenv().ResonanceUsersUnload = unload
+
+--// Initial update + query
+updateGUI()
+ExtendGrabLine:FireServer("r.presence query " .. tostring(math.random(100000, 999999)))
