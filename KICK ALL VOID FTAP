@@ -1,0 +1,161 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MenuToys = ReplicatedStorage:FindFirstChild("MenuToys")
+local GrabEvents = ReplicatedStorage:WaitForChild("GrabEvents")
+local CreateGrabLine = GrabEvents:WaitForChild("CreateGrabLine")
+local SetNetworkOwner = GrabEvents:WaitForChild("SetNetworkOwner")
+local DestroyGrabLine = GrabEvents:WaitForChild("DestroyGrabLine")
+local Workspace = game:GetService("Workspace")
+local SpawnToyRemoteFunction = MenuToys.SpawnToyRemoteFunction
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local character = Player.Character or Player.CharacterAdded:Wait()
+local HRP = character:WaitForChild("HumanoidRootPart")
+local height = 50
+local radius = 30
+local validTargets = {}
+local createdHolders = {}
+local center = Vector3.new(0, -7.35 + height, 0)
+
+local function uvidomleniya(title, content, duration, icon)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = tostring(title),
+        Text = tostring(content),
+        Duration = duration or 5,
+        Icon = typeof(icon) == "number" and "rbxassetid://" .. icon or icon or ""
+    })
+end
+
+MonsterLagEnabledkickall = true
+task.spawn(function()
+    local RepS = game:GetService("ReplicatedStorage")
+    local WS = game:GetService("Workspace")
+    local LP = game:GetService("Players").LocalPlayer
+    local GrabEvents = RepS:FindFirstChild("GrabEvents")
+    local CreateLine = GrabEvents and GrabEvents:FindFirstChild("CreateGrabLine")
+    while MonsterLagEnabledkickall and CreateLine do
+        local spawnLocation = WS:FindFirstChild("SpawnLocation") 
+            or WS:FindFirstChild("Spawn") 
+            or (LP.Character and LP.Character:FindFirstChild("HumanoidRootPart"))
+        if spawnLocation then
+            local randomX = math.random(-9e9, 9e9)
+            local randomZ = math.random(-9e9, 9e9)
+            CreateLine:FireServer(spawnLocation, CFrame.new(randomX, 0, randomZ))
+        end
+        task.wait(0)
+    end
+end)
+
+uvidomleniya("kick all (grab) launch", "Wait, it's starting to lag", 3, 140038364398105)
+
+task.wait(3)
+
+local PlayersInPlots = Workspace.PlotItems:WaitForChild("PlayersInPlots")
+for _, plr in ipairs(Players:GetPlayers()) do
+    local isFriend = Player:IsFriendsWith(plr.UserId)
+    if plr ~= Player and not isFriend and not PlayersInPlots:FindFirstChild(plr.Name) then
+        local plrChar = plr.Character
+        local torso = plrChar and (plrChar:FindFirstChild("Torso") or plrChar:FindFirstChild("UpperTorso"))
+        local targetHRP = plrChar and plrChar:FindFirstChild("HumanoidRootPart")
+        if torso and targetHRP then
+            table.insert(validTargets, {
+                Player = plr,
+                Torso = torso,
+                HRP = targetHRP
+            })
+        end
+    end
+end
+
+if #validTargets == 0 then
+    uvidomleniya("players", "target players = 0", 5, 7992557358)
+    MonsterLagEnabledkickall = false
+    return
+end
+local seif_CFrame = HRP.CFrame
+for _, targetData in ipairs(validTargets) do
+    local torso = targetData.Torso
+    local targetHRP = targetData.HRP
+    if torso and targetHRP and targetHRP.Parent then
+        HRP.AssemblyLinearVelocity = Vector3.zero
+        HRP.AssemblyAngularVelocity = Vector3.zero
+        HRP.CFrame = targetHRP.CFrame * CFrame.new(0, 5, 0)
+        task.wait(0.15) 
+        HRP.AssemblyLinearVelocity = Vector3.zero
+        HRP.AssemblyAngularVelocity = Vector3.zero
+        SetNetworkOwner:FireServer(torso, targetHRP.CFrame)
+        task.wait(0.05)
+        CreateGrabLine:FireServer(torso, CFrame.new(0.216, -0.210, -0.500))
+        task.wait(0.10)
+    end
+end
+
+for i, targetData in ipairs(validTargets) do
+    local targetHRP = targetData.HRP
+    if targetHRP and targetHRP.Parent then
+        local angle = (i - 1) * (2 * math.pi / #validTargets)
+        local position = center + Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+        targetHRP.CFrame = CFrame.lookAt(position, center)
+        targetHRP.AssemblyLinearVelocity = Vector3.zero
+        targetHRP.AssemblyAngularVelocity = Vector3.zero
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Name = "TempAirHold"
+        bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        bodyVelocity.Velocity = Vector3.zero
+        bodyVelocity.Parent = targetHRP
+        table.insert(createdHolders, bodyVelocity)
+    end
+end
+
+if #validTargets > 0 then
+    local targetOnCircle = validTargets[1]
+    if targetOnCircle.HRP and targetOnCircle.HRP.Parent then
+        HRP.CFrame = targetOnCircle.HRP.CFrame * CFrame.new(0, 3.5, 0)
+        task.wait(0.15)
+    end
+end
+
+HRP.CFrame = seif_CFrame
+
+for _, targetData in ipairs(validTargets) do
+    task.spawn(function()
+        local targetHRP = targetData.HRP
+
+        if targetHRP and targetHRP.Parent then
+            for _ = 1, 10 do
+                if not targetHRP or not targetHRP.Parent then
+                    break
+                end
+
+                targetHRP.AssemblyLinearVelocity = Vector3.new(0, 1000000, 0)
+                targetHRP.AssemblyAngularVelocity = Vector3.zero
+
+                task.wait()
+            end
+        end
+    end)
+end
+
+for _, targetData in ipairs(validTargets) do
+    local torso = targetData.Torso
+    if torso and torso.Parent then
+        DestroyGrabLine:FireServer(torso)
+    end
+end
+
+
+task.wait(3)
+for _, bv in ipairs(createdHolders) do
+    if bv and bv.Parent then bv:Destroy() end
+end
+
+for _, targetData in ipairs(validTargets) do
+    local torso = targetData.Torso
+    if torso and torso.Parent then
+        DestroyGrabLine:FireServer(torso)
+    end
+end
+uvidomleniya("kick all(grab) completed", "Of course, not everyone got kicked, but it was great", 5, 107070029277195)
+table.clear(validTargets)
+task.wait(10)
+MonsterLagEnabledkickall = false
+uvidomleniya("lag", "has stopped", 5, 89066436747485)
