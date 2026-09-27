@@ -1,0 +1,73 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local function Setup(character)
+    local torso = character:WaitForChild("Torso")
+
+    local parts = {
+        character:WaitForChild("Head"),
+        character:WaitForChild("HumanoidRootPart"),
+        character:WaitForChild("Left Arm"),
+        character:WaitForChild("Left Leg"),
+        character:WaitForChild("Right Arm"),
+        character:WaitForChild("Right Leg"),
+        torso,
+    }
+
+    local boxes = {}
+
+    local function EnableOutline()
+        if next(boxes) then
+            return
+        end
+    
+        for _, part in ipairs(parts) do
+            local box = Instance.new("SelectionBox")
+            box.Name = "WireOutline"
+            box.Adornee = part
+            box.Color3 = Color3.fromRGB(0, 200, 255)
+            box.SurfaceTransparency = 1
+            box.Transparency = 0
+            box.LineThickness = 0.03
+            box.Parent = part
+    
+            boxes[part] = box
+        end
+    
+        RunService.RenderStepped:Connect(function()
+            local firstPerson = (workspace.CurrentCamera.CFrame.Position - character.Head.Position).Magnitude < 1.15
+    
+            for _, box in pairs(boxes) do
+                box.Visible = not firstPerson
+            end
+        end)
+    end
+
+    local function DisableOutline()
+        for _, box in pairs(boxes) do
+            if box then
+                box:Destroy()
+            end
+        end
+        table.clear(boxes)
+    end
+
+    local function Update()
+        if torso.Transparency == 1 then
+            EnableOutline()
+        else
+            DisableOutline()
+        end
+    end
+
+    torso:GetPropertyChangedSignal("Transparency"):Connect(Update)
+
+    Update()
+end
+
+if LocalPlayer.Character then
+    task.spawn(Setup, LocalPlayer.Character)
+end
+
+LocalPlayer.CharacterAdded:Connect(Setup)
