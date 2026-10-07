@@ -1,0 +1,374 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local localPlayer = Players.LocalPlayer
+
+local role = {
+    owner = "Owner",
+    friend = "Friend",
+    tester = "Tester",
+    cocksucker = "cocksucker"
+}
+
+local access = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/delivery-2347/script/refs/heads/main/dostup"
+))()
+
+local function executePayload(userRole: string)
+    if userRole == "Owner" then
+        print(userRole .. " hui sosi")
+
+    elseif userRole == "Friend" then
+        print(userRole .. " hui otsosi")
+
+    elseif userRole == "Tester" then
+        print(userRole .. " kak tebya hui otsosi")
+
+    elseif userRole == "cocksucker" then
+        game:Shutdown()
+    end
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ScreenGui"
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game:GetService("CoreGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "Frame"
+mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.fromScale(0.5, 0.5)
+
+mainFrame.Size = UDim2.new(0, 500, 0, 150)
+mainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.Parent = screenGui
+
+local cucumberLabel = Instance.new("TextLabel")
+cucumberLabel.Name = "CUCUMBER"
+cucumberLabel.BorderSizePixel = 0
+cucumberLabel.TextSize = 14
+cucumberLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+cucumberLabel.FontFace = Font.new(
+    [[rbxasset://fonts/families/SourceSansPro.json]],
+    Enum.FontWeight.Regular,
+    Enum.FontStyle.Normal
+)
+cucumberLabel.TextColor3 = Color3.fromRGB(0, 255, 31)
+cucumberLabel.Size = UDim2.new(0, 200, 0, 30)
+cucumberLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+cucumberLabel.Text = "CUCUMBER"
+cucumberLabel.Position = UDim2.new(0.3, 0, 0, 0)
+cucumberLabel.Parent = mainFrame
+
+local cucumberImage = Instance.new("ImageButton")
+cucumberImage.Name = "cucumberha"
+cucumberImage.BorderSizePixel = 0
+cucumberImage.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+cucumberImage.Image = "rbxassetid://92880046539048"
+cucumberImage.Size = UDim2.new(0, 100, 0, 100)
+cucumberImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+cucumberImage.Position = UDim2.new(0, 0, 0, 0)
+cucumberImage.Parent = mainFrame
+
+local clickSound = Instance.new("Sound")
+clickSound.SoundId = "rbxassetid://89496074720995"
+clickSound.Volume = 1
+clickSound.Parent = cucumberImage
+
+local lastClick = 0
+local clickCooldown = 3
+
+cucumberImage.MouseButton1Click:Connect(function()
+    local now = os.clock()
+
+    if now - lastClick < clickCooldown then
+        return
+    end
+
+    lastClick = now
+    clickSound:Play()
+end)
+
+local roleLabel = Instance.new("TextLabel")
+roleLabel.Name = "role"
+roleLabel.BorderSizePixel = 0
+roleLabel.TextSize = 14
+roleLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+roleLabel.FontFace = Font.new(
+    [[rbxasset://fonts/families/SourceSansPro.json]],
+    Enum.FontWeight.Regular,
+    Enum.FontStyle.Normal
+)
+roleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+roleLabel.Size = UDim2.new(0, 242, 0, 30)
+roleLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+roleLabel.Text = "role"
+roleLabel.Position = UDim2.new(0.416, 0, 0.2, 0)
+roleLabel.Parent = mainFrame
+
+local iconOval = Instance.new("ImageButton")
+iconOval.Name = "player_icon"
+iconOval.BorderSizePixel = 0
+iconOval.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+iconOval.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+
+iconOval.Size = UDim2.new(0, 58, 0, 30)
+iconOval.Position = UDim2.new(0.3, 0, 0.46667, 0)
+
+iconOval.BorderColor3 = Color3.fromRGB(0, 0, 0)
+iconOval.Parent = mainFrame
+
+task.spawn(function()
+    local success, thumb = pcall(function()
+        return Players:GetUserThumbnailAsync(
+            localPlayer.UserId,
+            Enum.ThumbnailType.HeadShot,
+            Enum.ThumbnailSize.Size100x100
+        )
+    end)
+
+    if success then
+        iconOval.Image = thumb
+    end
+end)
+
+local playerNameLabel = Instance.new("TextLabel")
+playerNameLabel.Name = "player_name"
+playerNameLabel.BorderSizePixel = 0
+playerNameLabel.TextSize = 14
+playerNameLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+playerNameLabel.FontFace = Font.new(
+    [[rbxasset://fonts/families/SourceSansPro.json]],
+    Enum.FontWeight.Regular,
+    Enum.FontStyle.Normal
+)
+playerNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+playerNameLabel.Size = UDim2.new(0, 242, 0, 30)
+playerNameLabel.Position = UDim2.new(0.416, 0, 0.46667, 0)
+
+playerNameLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+playerNameLabel.Text = localPlayer.Name
+playerNameLabel.Parent = mainFrame
+
+local loadingText = Instance.new("TextLabel")
+loadingText.Name = "load"
+loadingText.BorderSizePixel = 0
+loadingText.TextSize = 14
+loadingText.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+loadingText.FontFace = Font.new(
+    [[rbxasset://fonts/families/SourceSansPro.json]],
+    Enum.FontWeight.Regular,
+    Enum.FontStyle.Normal
+)
+loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadingText.Size = UDim2.new(0, 400, 0, 30)
+loadingText.BorderColor3 = Color3.fromRGB(0, 0, 0)
+loadingText.Text = "loading (0%)"
+loadingText.Position = UDim2.new(0.1, 0, 0.8, 0)
+loadingText.Parent = mainFrame
+
+local function explodeAndDestroy(target: Frame, gui: ScreenGui, onComplete: () -> ())
+    local originPos = target.AbsolutePosition
+    local originSize = target.AbsoluteSize
+
+    for _, child in ipairs(target:GetDescendants()) do
+        if child:IsA("GuiObject") then
+            local angle = math.rad(math.random(0, 360))
+            local force = math.random(350, 700)
+            local dur = math.random(6, 9) / 10
+
+            TweenService:Create(
+                child,
+                TweenInfo.new(
+                    dur,
+                    Enum.EasingStyle.Quart,
+                    Enum.EasingDirection.Out
+                ),
+                {
+                    Position = child.Position + UDim2.new(
+                        0,
+                        math.cos(angle) * force,
+                        0,
+                        math.sin(angle) * force
+                    ),
+                    Rotation = math.random(-400, 400),
+                    Size = UDim2.new(0, 0, 0, 0)
+                }
+            ):Play()
+
+            if child:IsA("TextLabel") then
+                TweenService:Create(
+                    child,
+                    TweenInfo.new(
+                        dur * 0.7,
+                        Enum.EasingStyle.Quad,
+                        Enum.EasingDirection.Out
+                    ),
+                    {
+                        TextTransparency = 1
+                    }
+                ):Play()
+
+            elseif child:IsA("ImageLabel") or child:IsA("ImageButton") then
+                TweenService:Create(
+                    child,
+                    TweenInfo.new(
+                        dur * 0.7,
+                        Enum.EasingStyle.Quad,
+                        Enum.EasingDirection.Out
+                    ),
+                    {
+                        ImageTransparency = 1
+                    }
+                ):Play()
+            end
+        end
+    end
+
+    local shardHolder = Instance.new("Folder")
+    shardHolder.Parent = gui
+
+    for _ = 1, 45 do
+        local shard = Instance.new("Frame")
+
+        local sW = math.random(6, 22)
+        local sH = math.random(6, 22)
+
+        local startX = originPos.X + math.random(0, originSize.X)
+        local startY = originPos.Y + math.random(0, originSize.Y)
+
+        shard.Size = UDim2.new(0, sW, 0, sH)
+        shard.Position = UDim2.new(0, startX, 0, startY)
+
+        shard.BackgroundColor3 =
+            (math.random() > 0.4)
+            and Color3.fromRGB(220, 220, 225)
+            or Color3.fromRGB(15, 15, 18)
+
+        shard.BorderSizePixel = 0
+        shard.Parent = shardHolder
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 1
+        stroke.Color = Color3.fromRGB(200, 200, 200)
+        stroke.Parent = shard
+
+        local angle = math.rad(math.random(0, 360))
+        local distance = math.random(300, 850)
+        local dur = math.random(6, 10) / 10
+
+        TweenService:Create(
+            shard,
+            TweenInfo.new(
+                dur,
+                Enum.EasingStyle.Quart,
+                Enum.EasingDirection.Out
+            ),
+            {
+                Position = UDim2.new(
+                    0,
+                    startX + math.cos(angle) * distance,
+                    0,
+                    startY + math.sin(angle) * distance
+                ),
+                Rotation = math.random(-720, 720),
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 0, 0, 0)
+            }
+        ):Play()
+    end
+
+    TweenService:Create(
+        target,
+        TweenInfo.new(
+            0.6,
+            Enum.EasingStyle.Quart,
+            Enum.EasingDirection.Out
+        ),
+        {
+            BackgroundTransparency = 1,
+            Size = target.Size + UDim2.new(0, 100, 0, 100),
+            Position = target.Position - UDim2.new(0, 50, 0, 50)
+        }
+    ):Play()
+
+    task.wait(0.75)
+
+    gui:Destroy()
+    onComplete()
+end
+
+task.spawn(function()
+    local currentPercent = 0
+
+    local function animateTo(
+        targetPercent: number,
+        duration: number,
+        stageName: string
+    )
+        local startVal = currentPercent
+        local startTime = os.clock()
+
+        while true do
+            local elapsed = os.clock() - startTime
+            local alpha = math.clamp(elapsed / duration, 0, 1)
+            local eased = 1 - (1 - alpha) * (1 - alpha)
+
+            currentPercent = math.floor(
+                startVal + (targetPercent - startVal) * eased
+            )
+
+            loadingText.Text = string.format(
+                "%s (%d%%)",
+                stageName,
+                currentPercent
+            )
+
+            if alpha >= 1 then
+                break
+            end
+
+            RunService.RenderStepped:Wait()
+        end
+    end
+
+    animateTo(25, 2.0, "initialization")
+    task.wait(0.3)
+
+    animateTo(55, 2.5, "Collecting")
+    task.wait(0.3)
+
+    animateTo(80, 2.5, "load")
+    task.wait(0.5)
+
+    local player_role = access[localPlayer.UserId]
+
+    if player_role then
+        roleLabel.Text = player_role
+        roleLabel.TextColor3 = Color3.fromRGB(80, 225, 125)
+
+        animateTo(100, 1.8, "Welcome " .. player_role)
+        task.wait(0.6)
+
+        explodeAndDestroy(mainFrame, screenGui, function()
+            executePayload(player_role)
+        end)
+
+    else
+        roleLabel.Text = "No Access"
+        roleLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+
+        loadingText.Text = "You are not on the list"
+        loadingText.TextColor3 = Color3.fromRGB(255, 60, 60)
+
+        task.wait(2.5)
+
+        localPlayer:Kick("You are not on the list")
+    end
+end)
