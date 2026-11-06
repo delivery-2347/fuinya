@@ -352,8 +352,11 @@ task.spawn(function()
     if player_role then
         roleLabel.Text = player_role
         roleLabel.TextColor3 = Color3.fromRGB(80, 225, 125)
-
-        animateTo(100, 1.8, "Welcome " .. player_role)
+        if player_role == "Owner" then 
+            animateTo(100, 1.8, "Welcome, my master") 
+        else 
+            animateTo(100, 1.8, "Welcome " .. player_role) 
+        end
         task.wait(0.6)
 
         explodeAndDestroy(mainFrame, screenGui, function()
